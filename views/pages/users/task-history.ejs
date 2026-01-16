@@ -1,0 +1,245 @@
+<script src="/javascripts/controllers/taskHistoryController.js"></script>
+
+<div class="container-fluid" ng-controller="TaskHistoryController">
+    <!-- Page Header -->
+    <div class="page-header mt-1 d-print-none">
+        <div class="row align-items-center">
+            <div class="col">
+                <h2 class="page-title mb-0">Task History</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page Body -->
+    <div class="page-body">
+        <div class="row">
+            <div class="col-12">
+                <div class="card rounded-0">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col"></div>
+                            <div class="col-md-auto"
+                                ng-show="currentUserDetails!=null && currentUserDetails.role == 'admin'">
+                                <select class="form-select" ng-model="selectedUserId" ng-change="getTaskHistory()">
+                                    <option value="">Please Select User</option>
+                                    <option value="{{user._id}}" ng-repeat="user in users">{{user.name}} ({{user.role}})
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-md-auto">
+                                <select class="form-select" ng-model="selectedMonth" ng-change="onChangeMonth()">
+                                    <option value="{{month.month}}" ng-repeat="month in months">{{month.name}}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-auto">
+                                <select class="form-select" ng-model="selectedYear" ng-change="onChangeYear()">
+                                    <option value="{{year}}" ng-repeat="year in years">{{year}}</option>
+                                </select>
+                            </div>
+                            <div class="col-md-auto"
+                                ng-if="currentUserDetails!=null && currentUserDetails.role == 'admin'">
+                                <button class="btn btn-outline-primary" type="button"
+                                    ng-disabled="!selectedUserId"
+                                    ng-click="openBackdatedTaskModal()">
+                                    Add Back Dated Task
+                                </button>
+                            </div>
+                            <div class="col-md-auto"
+                                ng-if="currentUserDetails!=null && currentUserDetails.role =='admin'">
+                                <button class="btn" type="button" ng-click="showReportModal()">Generate Report</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive mt-3">
+                            <table class="table table-vcenter table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" style="width: 5%">#</th>
+                                        <th class="text-center" style="width: 10%">Date</th>
+                                        <th class="text-center" style="width: 10%">Start Time</th>
+                                        <th class="text-center" style="width: 10%">End Time</th>
+                                        <th class="text-center" style="width: 5%">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="history in histories">
+                                        <td class="text-center">{{$index + 1}}</td>
+                                        <td class="text-center">{{history.date}}</td>
+                                        <td class="text-center">{{history.startTime}} </td>
+                                        <td class="text-center">{{history.endTime }}</td>
+                                        <td class="text-center">
+                                            <div class="btn-group-vertical w-100 actions-cell">
+                                                <button class="btn btn-sm btn-outline-dark d-flex align-items-center justify-content-center"
+                                                    type="button" ng-click="showTasks(history)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                        class="icon icon-tabler icons-tabler-outline icon-tabler-eye me-1">
+                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                                        <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+                                                        <path
+                                                            d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" />
+                                                    </svg>
+                                                    View ({{history.tasks.length}})
+                                                </button>
+                                                <button class="btn btn-sm btn-primary d-flex align-items-center justify-content-center"
+                                                    type="button"
+                                                    ng-if="currentUserDetails!=null && currentUserDetails.role == 'admin'"
+                                                    ng-click="openBackdatedTaskModal(history)">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                                                        viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                        class="icon icon-tabler icons-tabler-outline icon-tabler-playlist-add me-1">
+                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                                                        <path d="M19 8h-14" />
+                                                        <path d="M5 12h9" />
+                                                        <path d="M11 16h-6" />
+                                                        <path d="M15 16h6" />
+                                                        <path d="M18 13v6" />
+                                                    </svg>
+                                                    Add Tasks
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr ng-if="histories.length==0 && !isLoading">
+                                        <td colspan="5" class="text-center">NO RECORDS</td>
+                                    </tr>
+                                    <tr ng-if="isLoading">
+                                        <td colspan="5" class="text-center">
+                                            <div class="spinner-border" role="status"></div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="backdatedTaskModal" tabindex="-1" aria-labelledby="backdatedTaskModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="backdatedTaskModalLabel">Add Back Dated Tasks</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group mb-3">
+                        <label>Date</label>
+                        <input type="date" class="form-control" ng-model="backdatedForm.date"
+                            ng-change="onBackdatedDateChange()" max="{{todayDateString}}">
+                    </div>
+                    <div class="row" ng-show="!backdatedForm.hasExistingDay">
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label>Start Time</label>
+                                <input type="time" class="form-control" ng-model="backdatedForm.startTime">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-3">
+                                <label>End Time</label>
+                                <input type="time" class="form-control" ng-model="backdatedForm.endTime">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Tasks</label>
+                        <textarea class="form-control" rows="5" placeholder="Enter one task per line"
+                            ng-model="backdatedForm.tasksText"></textarea>
+                        <small class="text-muted">Each line will be saved as a separate task.</small>
+                        <div class="text-muted mt-1" ng-if="backdatedForm.hasExistingDay" style="font-size: 12px;">
+                            Selected day already exists. Added tasks will use the existing timer.
+                        </div>
+                    </div>
+                    <div class="text-danger mt-2" ng-if="backdatedError" style="font-size: 12px;">
+                        {{backdatedError}}
+                    </div>
+                    <div class="text-end mt-3">
+                        <button class="btn btn-primary" type="button" ng-click="saveBackdatedTasks()"
+                            ng-disabled="isSavingBackdatedTasks">
+                            {{isSavingBackdatedTasks ? 'Saving...' : 'Save Tasks'}}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addTaskModalLabel">Tasks Details : {{selectedDate.date | date}}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" ng-if="selectedDate!=null">
+                    <div ng-repeat="task in selectedDate.tasks">
+                        <a class="card card-link card-link-pop mb-3">
+                            <div class="card-body">
+                                <div>{{task.task}}</div>
+                                <div class="mt-2">
+                                    <div class="badge me-2">Priority : <span class="text-warning">{{task.priority |
+                                            uppercase }}</span></div>
+                                    <div class="badge me-2">Assigned By : <span class="text-warning">{{
+                                            selectedDate.user == task.assignedBy ? 'Self' : 'Others' }}</span></div>
+                                    <div class="badge me-2">Status : <span class="text-success">{{task.status |
+                                            uppercase }}</span></div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="generateReportModal" tabindex="-1" aria-labelledby="generateReportModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="generateReportModalLabel">Generate Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md">
+                            <div class="form-group">
+                                <label>Month</label>
+                                <select class="form-select" ng-model="reportForm.month">
+                                    <option value="{{month.month}}" ng-repeat="month in months">{{month.name}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <div class="form-group">
+                                <label>Year</label>
+                                <select class="form-select" ng-model="reportForm.year">
+                                    <option value="{{year}}" ng-repeat="year in years">{{year}}</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <div class="form-group">
+                                <label>Work Type</label>
+                                <select class="form-select" ng-model="reportForm.workType">
+                                    <option value="remote">Remote</option>
+                                    <option value="onsite">Onsite</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div ng-show="errorMessage!=''" class="text-danger" style="font-size: 12px;">{{errorMessage}}</div>
+                            <button class="btn btn-success col-12 mt-3" type="button" ng-disabled="isDownloading" ng-click="generateReport()">Generate</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

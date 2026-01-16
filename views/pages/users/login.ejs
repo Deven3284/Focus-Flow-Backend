@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FocusTask</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/core@1.2.0/dist/css/tabler.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+  <script src="/javascripts/constants.js"></script>
+  <script src="/javascripts/main.js"></script>
+  <script src="/javascripts/services/sweetAlertService.js"></script>
+  <script src="/javascripts/services/httpServices.js"></script>
+  <script src="/javascripts/controllers/authController.js"></script>
+  <style>
+    :root {
+      --brand-color: #4361ee;
+      --brand-hover-color: #3a56d4;
+    }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f8fafc;
+    }
+    .navbar-brand {
+      color: var(--brand-color);
+      letter-spacing: -0.5px;
+    }
+    .card {
+      border: none;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.03);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .form-control {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+    }
+    .form-control:focus {
+      border-color: var(--brand-color);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+    }
+    .btn-primary {
+      background-color: var(--brand-color);
+      border: none;
+      padding: 10px 16px;
+      font-weight: 500;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn-primary:hover {
+      background-color: var(--brand-hover-color);
+      transform: translateY(-1px);
+    }
+    .login-illustration {
+      width: 200px;
+      margin: 0 auto 20px;
+      display: block;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: #94a3b8;
+    }
+    .divider::before, .divider::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .divider::before {
+      margin-right: 16px;
+    }
+    .divider::after {
+      margin-left: 16px;
+    }
+    .alternative-login {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .alternative-login-btn {
+      flex: 1;
+      border: 1px solid #e2e8f0;
+      background: white;
+      padding: 8px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+    }
+    .alternative-login-btn:hover {
+      border-color: #cbd5e1;
+      transform: translateY(-1px);
+    }
+    .alternative-login-btn img {
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .footer-links a {
+      color: #64748b;
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s ease;
+    }
+    .footer-links a:hover {
+      color: var(--brand-color);
+    }
+  </style>
+</head>
+
+<body ng-app="timerApp" ng-cloak>
+
+  <div class="page page-center" ng-controller="AuthController">
+    <div class="container container-tight py-4">
+      <div class="text-center mb-4">
+        <a href="/" class="navbar-brand navbar-brand-autodark" style="font-size: 30px; font-weight: 900;">
+          FocusTask
+        </a>
+        <p class="text-muted mt-2">Streamline your productivity and achieve more</p>
+      </div>
+      <div class="card card-md">
+        <div class="card-body">
+          <h2 class="h2 text-center mb-2">Welcome back</h2>
+          <p class="text-muted text-center mb-4">Sign in to continue to your dashboard</p>
+
+          
+          <form ng-submit="onSubmit()" autocomplete="off">
+            <div class="mb-3">
+              <label class="form-label">Email address</label>
+              <input type="email" class="form-control" ng-model="form.email" placeholder="email@itfuturz.com"
+                autocomplete="off" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <div class="input-group input-group-flat">
+                <input type="{{showPassword ? 'text': 'password' }}" class="form-control" autocomplete="new-password" 
+                  ng-model="form.password" placeholder="Your password" required>
+                <span class="input-group-text">
+                  <span class="link-secondary" ng-click="showPassword=!showPassword" style="cursor: pointer;"> {{ showPassword ? 'Hide' : 'Show' }}</span>
+                </span>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-check">
+                <input type="checkbox" class="form-check-input">
+                <span class="form-check-label">Remember me</span>
+              </label>
+            </div>
+            <div class="form-footer">
+              <button type="submit" class="btn btn-primary w-100 py-2" ng-disabled="isLoading">{{ isLoading ? 'Please wait...': 'Sign in'}}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <div class="footer-links">
+        <a href="https://www.itfuturz.com" target="_blank">Powered By <b>ITFuturz</b></a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.2.0/dist/js/tabler.min.js"></script>
+</body>
+
+</html>
